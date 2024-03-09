@@ -24,6 +24,8 @@
     </div>
 </div>
 
+
+
 <script>
     async function SubmitLogin() {
         let email = document.getElementById('email').value;
@@ -34,14 +36,18 @@
         } else if (password.length == 0) {
             errorToast('Password Is Required');
         } else {
+            showLoader();
             let response = await axios.post("/userLogin", {
                 email: email,
                 password: password
             });
+            hideLoader();
 
             if (response.status === 200 && response.data['status'] === 'success') {
-                window.location.href = "/dashboard";
-
+                successToast(response.data['message']);
+                setTimeout(() => {
+                    window.location.href = "/dashboard";
+                }, 1000);
             } else {
                 errorToast(response.data['message']);
             }

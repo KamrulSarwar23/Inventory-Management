@@ -22,13 +22,18 @@
         if (email.length == 0) {
             errorToast('Email Is Required');
         }else{
+            showLoader();
             let response = await axios.post("/sendOTP", {
                 email:email
             });
-
+            hideLoader();
             if (response.status == 200 && response.data['status'] === 'success') {
                 successToast(response.data['message']);
-                window.location.href = "/verifyOtp";
+                sessionStorage.setItem('email', email);
+                setTimeout(() => {
+                    window.location.href = "/verifyOtp";
+                }, 1000);
+               
             }else{
                 errorToast(response.data['message']);
             }

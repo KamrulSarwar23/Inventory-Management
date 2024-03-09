@@ -13,33 +13,41 @@ use Illuminate\Support\Facades\Mail;
 class UserController extends Controller
 {
 
-    function HomePage(){
+    function HomePage()
+    {
         return view('pages.home');
     }
-    
-    function DashboardPage(){
+
+    function DashboardPage()
+    {
         return view('pages.dashboard.dashboard-page');
     }
 
-    function LoginPage(){
+    function LoginPage()
+    {
         return view('pages.auth.login-page');
     }
 
-    function RegistrationPage(){
+    function RegistrationPage()
+    {
         return view('pages.auth.registration-page');
     }
-    function SendOtpPage(){
+    function SendOtpPage()
+    {
         return view('pages.auth.send-otp-page');
     }
-    function VerifyOTPPage(){
+    function VerifyOTPPage()
+    {
         return view('pages.auth.verify-otp-page');
     }
 
-    function ResetPasswordPage(){
+    function ResetPasswordPage()
+    {
         return view('pages.auth.reset-pass-page');
     }
 
-    function ProfilePage(){
+    function ProfilePage()
+    {
         return view('pages.dashboard.profile-page');
     }
 
@@ -54,7 +62,7 @@ class UserController extends Controller
                 'password' => ['required'],
             ]);
 
-             User::create([
+            User::create([
                 'email' => $request->email,
                 'firstName' => $request->firstName,
                 'lastName' => $request->lastName,
@@ -62,7 +70,6 @@ class UserController extends Controller
                 'password' => $request->password
             ]);
             return response()->json(['status' => 'success', 'message' => 'User Registration Successfull'], 200);
-
         } catch (Exception $e) {
             return response()->json(['status' => 'failed', 'message' => 'Something Went Wrong']);
         }
@@ -75,11 +82,12 @@ class UserController extends Controller
             'password' => ['required'],
         ]);
 
-        $count  = User::where(['email' => $request->email, 'password' => $request->password])->count();
+        $count  = User::where(['email' => $request->email, 'password' => $request->password])->select('id')->first();
 
-        if ($count == 1) {
-            $token = JWTToken::CreateToken($request->email);
-            return response()->json(['status' => 'success', 'message' => 'User Login Successfull'], 200)->cookie('token',$token,60*24*30);
+        if ($count) {
+            $token = JWTToken::CreateToken($request->email, $count->id);
+
+            return response()->json(['status' => 'success', 'message' => 'User Login Successfull'], 200)->cookie('token', $token, 60 * 24 * 30);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'unauthorized'], 200);
         }
@@ -120,7 +128,7 @@ class UserController extends Controller
         if ($count == 1) {
             User::where('email', $email)->update(['otp' =>  0]);
             $token = JWTToken::CreateTokenForPassowordReset($email);
-            return response()->json(['status' => 'success', 'message' => 'OTP Verified Successfull'], 200)->cookie('token',$token,60*24*30);
+            return response()->json(['status' => 'success', 'message' => 'OTP Verified Successfull'], 200)->cookie('token', $token, 60 * 24 * 30);
         } else {
             return response()->json(['status' => 'failed', 'message' => 'unauthorized'], 200);
         }
@@ -145,5 +153,35 @@ class UserController extends Controller
         } catch (Exception $e) {
             return response()->json(['status' => 'failed', 'message' => 'unauthorized'], 200);
         }
+    }
+
+    public function userLogout(){
+        return redirect('/userLogin')->cookie('token', '', -1);
+    }
+
+
+    public function UserProfile(Request $request){
+        $email = $request->header('email');
+        $user = User::where('email', $email)->first();
+        return response()->json(['status' => 'success', 'message' => 'User Profile', 'data' => $user]);
+    }
+    
+
+
+    public function ProflleUpdate(Request $request){
+        $email = $request->header('email');
+        $firstName = $request->firstName;
+        $lastName = $request->lastName;
+        $mobile = $request->mobile;
+        $password = $request->password;
+    
+        User::where('email', $email)->update([
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'mobile' => $mobile,
+            'password' => $password
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'User Profile Update Successfull']);
     }
 }

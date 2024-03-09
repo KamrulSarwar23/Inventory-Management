@@ -1,12 +1,11 @@
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-7 col-lg-6 center-screen">
             <div class="card animated fadeIn w-90  p-4">
                 <div class="card-body">
                     <h4>ENTER OTP CODE</h4>
-                    <br/>
-                    <label>Your Email</label>
-                    <input id="email" placeholder="Email" class="form-control mb-3" type="email"/>
+             
                     <label>4 Digit Code Here</label>
                     <input id="otp" placeholder="Code" class="form-control" type="text"/>
                     <br/>
@@ -17,23 +16,28 @@
     </div>
 </div>
 
-
 <script>
     async function VerifyOtp(){
-        let email = document.getElementById('email').value;
         let otp = document.getElementById('otp').value;
        
-        if (otp.length == 0) {
-            errorToast('Otp Is Required');
+        if (otp.length !== 4) {
+            errorToast('4 Digit Otp Is Required');
         }else{
+            showLoader();
             let response = await axios.post("/verifyOTP", {
-                email:email,
-                otp:otp
+                otp:otp,
+                email:sessionStorage.getItem('email')
             })
-
+            hideLoader();
             if (response.status === 200 && response.data['status'] === 'success' ) {
                 successToast(response.data['message']);
-                window.location.href = "/resetPassword";
+
+                sessionStorage.clear();
+
+                setTimeout(() => {
+                    window.location.href = "/resetPassword";
+                }, 1000);
+            
             }else{
                 errorToast(response.data['message']);
             }

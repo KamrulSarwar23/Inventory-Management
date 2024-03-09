@@ -61,6 +61,7 @@
         } else if (password.length == 0) {
             errorToast('Password Is Required');
         } else {
+            showLoader();
             let response = await axios.post("/userRegistration", {
                 email: email,
                 firstName: firstName,
@@ -68,10 +69,14 @@
                 mobile: mobile,
                 password: password
             })
-
+           hideLoader();
+           
             if (response.status === 200 && response.data['status'] === 'success') {
                 successToast(response.data['message']);
-                window.location.href = "/userLogin";
+            
+                setTimeout(() => {
+                    window.location.href = "/userLogin";
+                }, 1000);
 
             } else if(response.data['status'] === 'failed') {
                 errorToast(response.data['message']);
